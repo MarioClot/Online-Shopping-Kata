@@ -3,9 +3,11 @@ package codingdojo;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 public class OnlineShoppingTest {
 
@@ -56,18 +58,17 @@ public class OnlineShoppingTest {
         cart.addItem(masterclass);
         cart.addItem(makeoverNordstan);
 
-        Session session = new Session();
+        Session session = spy(new Session());
         session.put("STORE", nordstan);
         session.put("DELIVERY_INFO", deliveryInfo);
         session.put("CART", cart);
         OnlineShopping shopping = new OnlineShopping(session);
 
-        // TODO: make this test work
-        // shopping.switchStore(backaplan);
-        // assertEquals("DRONE", ((DeliveryInformation)session.get("DELIVERY_INFO")).getType());
+        doNothing().when(session).saveAll();
 
+        shopping.switchStore(backaplan);
+        assertEquals("DRONE_DELIVERY", ((DeliveryInformation)session.get("DELIVERY_INFO")).getType());
+        verify(session).saveAll();
     }
-
-
 
 }

@@ -8,20 +8,20 @@ import java.util.List;
  * While shopping online in a Store, the Cart stores the Items you intend to buy
  */
 public class Cart implements ModelObject {
-    ArrayList<Item> items = new ArrayList<>();
-    ArrayList<Item> unavailableItems = new ArrayList<>();
+    private ArrayList<Item> items = new ArrayList<>();
+    private ArrayList<Item> unavailableItems = new ArrayList<>();
+    private int weight = 0;
+
     public List<Item> getItems() {
         return items;
     }
+
     public void addItem(Item item) {
         this.items.add(item);
     }
+
     public void addItems(Collection<Item> items) {
         this.items.addAll(items);
-    }
-
-    public void markAsUnavailable(Item item) {
-        this.unavailableItems.add(item);
     }
 
     @Override
@@ -48,5 +48,42 @@ public class Cart implements ModelObject {
 
     public Collection<Item> getUnavailableItems() {
         return unavailableItems;
+    }
+
+    public void updateUnavailableItems() {
+        for (Item item : getItems()) {
+            if ("EVENT".equals(item.getType())) {
+                markAsUnavailable(item);
+            }
+        }
+    }
+
+    public void updateUnavailableItems(Store store) {
+        if ( store != null) {
+            ArrayList<Item> newItems = new ArrayList<>();
+            for (Item item : getItems()) {
+                if ("EVENT".equals(item.getType()) || !store.hasItem(item)) {
+                    markAsUnavailable(item);
+                }
+                if ("EVENT".equals(item.getType()) && store.hasItem(item)) {
+                    newItems.add(store.getItem(item.getName()));
+                }
+                weight += item.getWeight();
+            }
+            for (Item item : getUnavailableItems()) {
+                weight -= item.getWeight();
+            }
+            addItems(newItems);
+        } else {
+            updateUnavailableItems();
+        }
+    }
+
+    private void markAsUnavailable(Item item) {
+        this.unavailableItems.add(item);
+    }
+
+    public long getWeight() {
+        return weight;
     }
 }

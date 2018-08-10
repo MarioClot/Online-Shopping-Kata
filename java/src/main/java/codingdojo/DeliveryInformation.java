@@ -37,6 +37,10 @@ public class DeliveryInformation implements ModelObject {
         this.pickupLocation = store;
     }
 
+    public Store getPickupLocation() {
+        return this.pickupLocation;
+    }
+
     public void setTotalWeight(long weight) {
         this.weight = weight;
     }
@@ -56,4 +60,34 @@ public class DeliveryInformation implements ModelObject {
         throw new UnsupportedOperationException("missing from this exercise - shouldn't be called from a unit test");
     }
 
+    public void configureDeliveryInformation(Store storeToSwitch, LocationService locationService) {
+        Store currentStore = getPickupLocation();
+        setPickupLocation(storeToSwitch);
+
+        setDeliveryAddress(deliveryAddress);
+
+        if (storeToSwitch != null) {
+            boolean isHome = getType() != null && "HOME_DELIVERY".equals(getType());
+            boolean isWithin = false;
+
+            if (getDeliveryAddress() != null) {
+                isWithin = locationService.isWithinDeliveryRange(storeToSwitch, getDeliveryAddress());
+            }
+            boolean canSendWithDrone = weight < 500 && deliveryAddress != null && getDeliveryAddress() != null && isWithin && storeToSwitch.hasDroneDelivery();
+
+
+            if (canSendWithDrone) {
+                setType("DRONE_DELIVERY");
+            } else if (isHome && !isWithin) {
+                setType("PICK_UP");
+                setPickupLocation(currentStore);
+            } else if (isWithin) {
+                setType("HOME_DELIVERY");
+            }
+
+
+        } else {
+            setType("SHIPPING");
+        }
+    }
 }
